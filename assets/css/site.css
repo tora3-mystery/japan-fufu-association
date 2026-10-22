@@ -156,7 +156,6 @@ button, input, textarea { font: inherit; }
 .honorary { display: inline-block; margin-left: 5px; padding: 0 4px; border: 1px solid var(--gold); color: #6d511d; font-size: 10px; }
 
 .president-message { position: relative; padding: 22px 24px 18px; border: 4px double var(--line); background: #fffdf7; font-family: var(--serif); }
-.president-message::before { position: absolute; top: -11px; left: 18px; padding: 0 8px; background: var(--paper-light); color: var(--wine); content: "会長挨拶（草案）"; font-family: var(--sans); font-size: 11px; font-weight: 700; }
 .signature { margin-top: 14px; text-align: right; }
 
 .timeline { margin: 0; padding: 0; list-style: none; }
@@ -186,7 +185,6 @@ button, input, textarea { font: inherit; }
 .clause-list li { margin-bottom: 5px; }
 .revision-box { margin-top: 30px; padding: 10px 12px; border: 1px solid var(--line); background: #f2ead5; font-size: 12px; }
 
-/* v1.4 レトロ装飾・料理資料 */
 .new-mark { display: inline-block; margin-right: 5px; color: #c40000; font: 700 11px "Courier New", monospace; }
 .new-mark::before { content: "NEW!"; }
 .under-construction { display: inline-block; padding: 2px 7px; border: 2px dashed #b67816; background: #fff4ad; color: #6a4200; font: 700 11px "Courier New", monospace; }
