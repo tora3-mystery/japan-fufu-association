@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 340" role="img" aria-labelledby="title desc">
+  <title id="title">日本フフ普及協会 紋章案</title>
+  <desc id="desc">フフの器、杵、葉、二つの円を組み合わせた紺とえんじ色の紋章</desc>
+  <defs><path id="topArc" d="M45 155a105 105 0 0 1 210 0"/></defs>
+  <circle cx="150" cy="162" r="128" fill="#f7f0d9" stroke="#132b4f" stroke-width="8"/>
+  <circle cx="150" cy="162" r="111" fill="none" stroke="#b58a32" stroke-width="3"/>
+  <text fill="#132b4f" font-size="17" font-family="serif" font-weight="700" letter-spacing="4"><textPath href="#topArc" startOffset="50%" text-anchor="middle">日本フフ普及協会</textPath></text>
+  <path d="M87 210c17 38 109 38 126 0l-11 42c-9 32-95 32-104 0Z" fill="#6f1f2b" stroke="#132b4f" stroke-width="5"/>
+  <ellipse cx="150" cy="207" rx="64" ry="29" fill="#e2bc60" stroke="#132b4f" stroke-width="5"/>
+  <path d="M111 205c8-38 70-38 78 0-19 11-57 11-78 0Z" fill="#fffdf3"/>
+  <path d="M183 59l17 7-41 117-17-7z" fill="#234d3c" stroke="#132b4f" stroke-width="4"/>
+  <path d="M91 106c-30 12-42 31-38 60 27-6 44-24 38-60Zm119-3c29 12 41 31 37 60-27-6-43-24-37-60Z" fill="#234d3c" stroke="#132b4f" stroke-width="4"/>
+  <circle cx="150" cy="162" r="11" fill="#b58a32"/>
+  <path d="M66 281h168v29H66z" fill="#132b4f"/>
+  <path d="M52 281h196l-15-17H67z" fill="#6f1f2b" stroke="#132b4f" stroke-width="3"/>
+  <text x="150" y="301" fill="#fffdf3" font-family="serif" font-size="16" font-weight="700" text-anchor="middle" letter-spacing="3">2025・FUFU</text>
+</svg>

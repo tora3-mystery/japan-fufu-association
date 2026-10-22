@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="100" viewBox="0 0 600 100" role="img" aria-labelledby="t d">
+  <title id="t">2月2日はフフの日</title><desc id="d">日本フフ普及協会が提唱する記念日のレトロなバナー</desc>
+  <rect x="2" y="2" width="596" height="96" fill="#fff8df" stroke="#6f1f2b" stroke-width="4"/>
+  <rect x="9" y="9" width="582" height="82" fill="none" stroke="#b58a32" stroke-width="2"/>
+  <circle cx="75" cy="50" r="32" fill="#6f1f2b"/><text x="75" y="43" fill="#fff" text-anchor="middle" font-size="12" font-family="serif">毎年</text><text x="75" y="67" fill="#fff" text-anchor="middle" font-size="25" font-weight="700" font-family="serif">2.2</text>
+  <text x="330" y="46" fill="#132b4f" text-anchor="middle" font-size="31" font-weight="700" font-family="serif" letter-spacing="7">フフの日</text>
+  <text x="330" y="72" fill="#6f1f2b" text-anchor="middle" font-size="13" font-family="sans-serif" letter-spacing="3">当協会が提唱する記念日です</text>
+  <path d="M535 28l9 18 20 3-15 14 4 20-18-10-18 10 4-20-15-14 20-3Z" fill="#b58a32"/>
+</svg>

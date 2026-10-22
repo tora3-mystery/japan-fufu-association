@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="500" viewBox="0 0 1500 500" role="img" aria-labelledby="title desc">
+  <title id="title">日本フフ普及協会 公式Xヘッダー案</title>
+  <desc id="desc">アイボリー地に濃紺とえんじ色で協会名と2月2日はフフの日を記した装飾画像</desc>
+  <defs><pattern id="p" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="24" fill="#eadfbe"/><rect x="12" width="12" height="24" fill="#f6efd9"/></pattern></defs>
+  <rect width="1500" height="500" fill="#f4eed9"/>
+  <rect x="22" y="22" width="1456" height="456" fill="none" stroke="#132b4f" stroke-width="6"/>
+  <rect x="38" y="38" width="1424" height="424" fill="none" stroke="#b58a32" stroke-width="2"/>
+  <rect x="54" y="54" width="220" height="392" fill="url(#p)"/>
+  <circle cx="164" cy="250" r="86" fill="#fffaf0" stroke="#132b4f" stroke-width="8"/>
+  <ellipse cx="164" cy="282" rx="52" ry="24" fill="#b58a32" stroke="#132b4f" stroke-width="5"/>
+  <path d="M131 278c8-33 58-33 66 0" fill="#fffdf3"/>
+  <path d="M183 144l17 8-43 127-17-8Z" fill="#234d3c" stroke="#132b4f" stroke-width="4"/>
+  <text x="330" y="195" fill="#6f1f2b" font-family="sans-serif" font-size="28" font-weight="700" letter-spacing="8">JAPAN FUFU PROMOTION ASSOCIATION</text>
+  <text x="330" y="300" fill="#132b4f" font-family="serif" font-size="78" font-weight="700" letter-spacing="14">日本フフ普及協会</text>
+  <line x1="332" y1="330" x2="1390" y2="330" stroke="#94845f" stroke-width="2"/>
+  <text x="330" y="385" fill="#234d3c" font-family="serif" font-size="34" letter-spacing="8">食卓より始まる文化理解</text>
+  <rect x="1170" y="72" width="240" height="74" fill="#6f1f2b"/>
+  <text x="1290" y="104" fill="#fff" text-anchor="middle" font-size="17" font-family="serif">協会制定</text>
+  <text x="1290" y="132" fill="#fff" text-anchor="middle" font-size="25" font-weight="700" font-family="serif">2月2日はフフの日</text>
+</svg>
