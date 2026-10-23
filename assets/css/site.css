@@ -36,9 +36,6 @@ button, input, textarea { font: inherit; }
 .skip-link:focus { top: 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
-.utility-bar { border-bottom: 1px solid #b5a780; background: #eee5cf; color: #4c4539; font-size: 12px; }
-.utility-bar__inner { display: flex; justify-content: space-between; gap: 18px; padding: 5px 12px; }
-.utility-bar strong { color: var(--wine); }
 
 .site-shell { width: min(1050px, calc(100% - 24px)); margin: 14px auto 26px; border: 1px solid #786d55; background: var(--paper-light); box-shadow: 0 3px 20px var(--shadow); }
 .site-header { border-bottom: 4px double var(--line); background: linear-gradient(#fffdf6, #eee5cb); }
@@ -174,8 +171,8 @@ button, input, textarea { font: inherit; }
 .link-banner small { font-family: var(--sans); color: #5d5545; }
 
 .footer { border-top: 4px double var(--line); background: #e8dfc8; color: #4d473c; font-size: 11px; text-align: center; }
-.footer__nav { padding: 10px 12px 4px; }
-.footer__nav a { margin: 0 7px; }
+.footer__nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 16px; padding: 12px 12px 6px; }
+.footer__nav a { margin: 0; }
 .footer__meta { margin: 8px 16px 0; padding: 8px 10px 12px; border-top: 1px solid #b0a384; }
 .footer__meta p { margin: 2px 0; }
 
@@ -200,7 +197,7 @@ button, input, textarea { font: inherit; }
 .compact-banner { display: inline-flex; align-items: center; justify-content: center; min-height: 31px; margin: 3px; padding: 2px 8px; border: 2px outset #c0b28f; background: linear-gradient(#fffef7,#dfd4b7); color: var(--navy); font: 700 11px var(--serif); text-decoration: none; }
 .compact-banner:hover { border-style: inset; }
 
-/* 附属遊戯室 — 添付版のゲーム実装をv1.4へ統合 */
+/* フフ遊戯室 — 添付版のゲーム実装をv1.4へ統合 */
 .game-home-banner { margin: 18px 0; border: 2px ridge var(--gold); background: #fff6da; }
 .game-home-banner strong { color: var(--wine); font-family: var(--serif); }
 .game-home-banner p { margin: 4px 0; }
@@ -274,8 +271,6 @@ button, input, textarea { font: inherit; }
 
 @media (max-width: 540px) {
   body { font-size: 14px; }
-  .utility-bar__inner { display: block; text-align: center; }
-  .utility-bar__inner span:last-child { display: none; }
   .masthead { grid-template-columns: 58px 1fr; gap: 8px; }
   .masthead__logo img { width: 54px; }
   .masthead__title small { font-size: 9px; letter-spacing: .1em; }
@@ -297,7 +292,7 @@ button, input, textarea { font: inherit; }
 }
 
 @media print {
-  .utility-bar, .global-nav, .nav-toggle, .sidebar, .retro-banner, .footer__nav { display: none !important; }
+  .global-nav, .nav-toggle, .sidebar, .retro-banner, .footer__nav { display: none !important; }
   body, .site-shell { background: white; }
   .site-shell { width: 100%; margin: 0; border: 0; box-shadow: none; }
   .layout { display: block; }
