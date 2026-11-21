@@ -95,15 +95,17 @@
 (()=>{'use strict';
 // 全リールで読みを限定しない候補を使う。回転中に名前が推測されないようにする。
 const NAME=['新','之','介'];
+const PARTY_NAME=['祭','　','男'];
 const CANDIDATES=[...new Set(Array.from(
   '蓮湊陽朔碧凪蒼律樹悠颯翔晴朝海空大斗太人優希結奏真翼仁和光瑛一礼凛龍理生成志佑祐輔助歩聡怜圭慶涼絢輝春陸岳琉瑠慧匠悠聖拓悠暖尊楓葵柊旭桜健誠航直昴源斗宗央介之信新慎理俊蒼隆宙陽清虎弦侑想柚碧慈隼琥璃快正礼礼誉久良幸広健翔雄晴周冬雅伊' 
 ))];
 // 停止してから初めて、その字に関連する上下の候補を見せる。
 const NEIGHBORS=[['信','真'],['乃','野'],['佑','輔']];
+const PARTY_NEIGHBORS=[['祝','歓'],['花','楽'],['舞','宴']];
 const $=id=>document.getElementById(id);
 const nodes=NAME.map((_,i)=>({el:$('reel'+i),track:$('reel'+i).querySelector('.track'),window:$('reel'+i).querySelector('.window'),button:$('stop'+i),phase:0,lastBase:NaN,state:'idle',goal:0,from:0,stopStart:0,stopDuration:1150}));
 const start=$('start'),sound=$('sound'),result=$('result'),announcement=$('announcement'),stage=document.querySelector('.stage'),partyReveal=$('partyReveal'),resultLabel=$('resultLabel'),resultName=$('resultName'),resultEn=$('resultEn');
-let active=false,lastTime=0,raf=0,soundEnabled=true,audioContext=null,confettiFrame=0,pieces=[],secretTaps=0,finalTimer=0,partyBus=null,partyMusicTimer=0;
+let active=false,lastTime=0,raf=0,soundEnabled=true,audioContext=null,confettiFrame=0,pieces=[],secretTaps=0,partyArmed=false,finalTimer=0,partyBus=null,partyMusicTimer=0;
 const canvas=$('confetti'),ctx=canvas.getContext('2d');
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
 function getAudio(){if(!soundEnabled)return null;try{if(!audioContext)audioContext=new(window.AudioContext||window.webkitAudioContext)();if(audioContext.state==='suspended')audioContext.resume();return audioContext}catch(e){return null}}
@@ -145,24 +147,25 @@ function startPartyMusic(){
 function resetCanvas(){const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(innerWidth*dpr);canvas.height=Math.round(innerHeight*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)}
 window.addEventListener('resize',()=>{resetCanvas();nodes.forEach(n=>render(n,true))},{passive:true});resetCanvas();
 function confetti(party=false){if(reduced.matches)return;if(confettiFrame)cancelAnimationFrame(confettiFrame);const w=innerWidth,h=innerHeight,colors=party?['#ffda35','#ff619d','#40e6d2','#ffffff','#fe8239','#a58bff']:['#f3ca72','#fff6db','#ed9ca3','#d3b2f4','#91d1e2'];pieces=Array.from({length:party?240:130},(_,i)=>({x:w*(.2+Math.random()*.6),y:h*.35,vx:(Math.random()-.5)*12,vy:-3-Math.random()*9,g:.09+Math.random()*.13,rotation:Math.random()*7,spin:(Math.random()-.5)*.21,s:4+Math.random()*7,color:colors[i%colors.length]}));let frame=0;function draw(){ctx.clearRect(0,0,innerWidth,innerHeight);frame++;for(const p of pieces){p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.rotation+=p.spin;if(p.y>h+30)continue;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rotation);ctx.fillStyle=p.color;ctx.fillRect(-p.s/2,-p.s/3,p.s,p.s*.65);ctx.restore()}if(frame<310&&pieces.some(p=>p.y<h+30))confettiFrame=requestAnimationFrame(draw);else{ctx.clearRect(0,0,innerWidth,innerHeight);confettiFrame=0}}draw()}
-function glyph(i,k){const n=nodes[i];if(n.state==='idle')return '?';if(n.state==='stopping'||n.state==='locked'){if(k===n.goal)return NAME[i];if(k===n.goal-1)return NEIGHBORS[i][0];if(k===n.goal+1)return NEIGHBORS[i][1]}let v=Math.imul((k ^ Math.imul(i+17,0x9e3779b9)),0x85ebca6b);v^=v>>>13;v=Math.imul(v,0xc2b2ae35);v^=v>>>16;return CANDIDATES[(v>>>0)%CANDIDATES.length]}
+function glyph(i,k){const n=nodes[i];if(n.state==='idle')return '?';if(n.state==='stopping'||n.state==='locked'){const symbols=partyArmed?PARTY_NAME:NAME,neighbors=partyArmed?PARTY_NEIGHBORS:NEIGHBORS;if(k===n.goal)return symbols[i];if(k===n.goal-1)return neighbors[i][0];if(k===n.goal+1)return neighbors[i][1]}let v=Math.imul((k ^ Math.imul(i+17,0x9e3779b9)),0x85ebca6b);v^=v>>>13;v=Math.imul(v,0xc2b2ae35);v^=v>>>16;return CANDIDATES[(v>>>0)%CANDIDATES.length]}
 function render(n,force=false){const i=nodes.indexOf(n),h=n.window.getBoundingClientRect().height,base=Math.floor(n.phase),frac=n.phase-base;
  if(force||base!==n.lastBase){n.lastBase=base;const frag=document.createDocumentFragment();for(let k=base-2;k<=base+3;k++){const div=document.createElement('div');div.className='cell'+(n.state==='idle'?' placeholder':'');div.textContent=glyph(i,k);frag.appendChild(div)}n.track.replaceChildren(frag)}
  const row=n.track.firstElementChild?.getBoundingClientRect().height||100;
  n.track.style.transform=`translate3d(0,${h/2-row/2-(2+frac)*row}px,0)`;
 }
 function refreshButtons(){nodes.forEach(n=>{n.button.className='stop';if(n.state==='locked'){n.button.disabled=true;n.button.classList.add('done');n.button.textContent='✓';}else if(active&&n.state==='spinning'){n.button.disabled=false;n.button.classList.add('ready');n.button.textContent='STOP';}else{n.button.disabled=true;n.button.textContent='STOP'}})}
-function reset(){clearTimeout(finalTimer);finalTimer=0;stopPartyMusic();cancelAnimationFrame(raf);raf=0;lastTime=0;secretTaps=0;stage.classList.remove('party-mode');partyReveal.setAttribute('aria-hidden','true');resultLabel.textContent='HELLO, WORLD!';resultName.textContent='伊藤 新之介';resultEn.textContent='SHINNOSUKE ITO';start.classList.remove('during');start.disabled=false;start.textContent='▶ START';result.classList.remove('shown');result.setAttribute('aria-hidden','true');announcement.textContent='';nodes.forEach(n=>{n.phase=0;n.state='idle';n.goal=0;n.lastBase=NaN;n.el.classList.remove('locked');render(n,true)});active=false;refreshButtons();if(confettiFrame)cancelAnimationFrame(confettiFrame);confettiFrame=0;ctx.clearRect(0,0,innerWidth,innerHeight)}
+function reset(){clearTimeout(finalTimer);finalTimer=0;stopPartyMusic();cancelAnimationFrame(raf);raf=0;lastTime=0;secretTaps=0;partyArmed=false;stage.classList.remove('party-mode');partyReveal.setAttribute('aria-hidden','true');resultLabel.textContent='HELLO, WORLD!';resultName.textContent='伊藤 新之介';resultEn.textContent='SHINNOSUKE ITO';start.classList.remove('during');start.disabled=false;start.textContent='▶ START';result.classList.remove('shown');result.setAttribute('aria-hidden','true');announcement.textContent='';nodes.forEach(n=>{n.phase=0;n.state='idle';n.goal=0;n.lastBase=NaN;n.el.classList.remove('locked');render(n,true)});active=false;refreshButtons();if(confettiFrame)cancelAnimationFrame(confettiFrame);confettiFrame=0;ctx.clearRect(0,0,innerWidth,innerHeight)}
 function loop(now){if(!active)return;const dt=lastTime?Math.min((now-lastTime)/1000,.05):0;lastTime=now;
- for(let i=0;i<nodes.length;i++){const n=nodes[i];if(n.state==='spinning')n.phase+=dt*(10.5+i*1.3);else if(n.state==='stopping'){const x=Math.min(1,(now-n.stopStart)/n.stopDuration),ease=1-Math.pow(1-x,3);n.phase=n.from+(n.goal-n.from)*ease;if(x>=1){n.phase=n.goal;n.state='locked';n.el.classList.add('locked');playStop(i);announcement.textContent=NAME[i]+' が止まりました。';refreshButtons()}}render(n)}
+ for(let i=0;i<nodes.length;i++){const n=nodes[i];if(n.state==='spinning')n.phase+=dt*(10.5+i*1.3);else if(n.state==='stopping'){const x=Math.min(1,(now-n.stopStart)/n.stopDuration),ease=1-Math.pow(1-x,3);n.phase=n.from+(n.goal-n.from)*ease;if(x>=1){n.phase=n.goal;n.state='locked';n.el.classList.add('locked');playStop(i);announcement.textContent=(partyArmed?PARTY_NAME:NAME)[i]+' が止まりました。';refreshButtons()}}render(n)}
  if(nodes.every(n=>n.state==='locked')){finish();return}
  raf=requestAnimationFrame(loop)}
 function startSpin(){if(active)return;reset();active=true;getAudio();playStart();nodes.forEach((n,i)=>{n.state='spinning';n.phase=.5+i*1.1;n.lastBase=NaN;render(n,true)});start.textContent='発表中';start.disabled=false;start.classList.add('during');refreshButtons();raf=requestAnimationFrame(loop)}
 function stop(i){const n=nodes[i];if(!active||n.state!=='spinning')return;n.state='stopping';n.from=n.phase;n.goal=Math.ceil(n.from)+5;n.stopStart=performance.now();n.stopDuration=reduced.matches?80:1160;n.lastBase=NaN;refreshButtons();render(n,true)}
-function finish(){active=false;cancelAnimationFrame(raf);raf=0;nodes.forEach(n=>render(n,true));refreshButtons();start.disabled=true;start.classList.remove('during');finalTimer=setTimeout(()=>{result.classList.add('shown');result.setAttribute('aria-hidden','false');announcement.textContent='お名前は、伊藤 新之介（いとう しんのすけ）です。';fanfare();confetti();start.textContent='↻ もう一度';start.disabled=false;finalTimer=0},reduced.matches?0:400)}
+function finish(){active=false;cancelAnimationFrame(raf);raf=0;nodes.forEach(n=>render(n,true));refreshButtons();start.disabled=true;start.classList.remove('during');finalTimer=setTimeout(()=>{if(partyArmed){party()}else{result.classList.add('shown');result.setAttribute('aria-hidden','false');announcement.textContent='お名前は、伊藤 新之介（いとう しんのすけ）です。';fanfare();confetti();start.textContent='↻ もう一度';start.disabled=false}finalTimer=0},reduced.matches?0:(partyArmed?900:400))}
 function party(){
- if(!active)return;active=false;cancelAnimationFrame(raf);raf=0;lastTime=0;
- nodes.forEach(n=>{if(n.state==='spinning'||n.state==='stopping')n.state='idle'});refreshButtons();
+ // 裏コマンドが成立し、3つのリールが『祭』『　』『男』で停止した後だけ最終画面に切り替える。
+ if(!partyArmed||nodes.some(n=>n.state!=='locked'))return;
+ lastTime=0;
  stage.classList.add('party-mode');partyReveal.setAttribute('aria-hidden','false');
  resultLabel.textContent='SURPRISE!';resultName.textContent='伊藤 ぱーてぃーちゃん';resultEn.textContent='PARTY TIME!';
  result.classList.add('shown');result.setAttribute('aria-hidden','false');
@@ -170,7 +173,10 @@ function party(){
  start.classList.remove('during');start.textContent='↻ もう一度';start.disabled=false;
  confetti(true);startPartyMusic();
 }
-start.addEventListener('click',()=>{if(active){secretTaps++;if(secretTaps===3)party();}else if(!finalTimer){startSpin()}});nodes.forEach((n,i)=>n.button.addEventListener('click',()=>stop(i)));
+start.addEventListener('click',()=>{if(active){
+ // STOPを一度も押していないときだけ3連打を受け付ける。表示は通常モードのまま。
+ if(!partyArmed&&nodes.every(n=>n.state==='spinning')){secretTaps++;if(secretTaps===3)partyArmed=true}
+ }else if(!finalTimer){startSpin()}});nodes.forEach((n,i)=>n.button.addEventListener('click',()=>stop(i)));
 sound.addEventListener('click',()=>{soundEnabled=!soundEnabled;sound.setAttribute('aria-pressed',String(soundEnabled));sound.textContent=soundEnabled?'♪ 音あり':'♪ 消音中';if(!soundEnabled)stopPartyMusic();else if(stage.classList.contains('party-mode'))startPartyMusic();else tone(660,.14,.05)});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){lastTime=0;if(audioContext&&audioContext.state==='running')audioContext.suspend()}else if(soundEnabled&&(active||stage.classList.contains('party-mode'))&&audioContext)audioContext.resume()});reset();
 })();
