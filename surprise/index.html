@@ -48,6 +48,20 @@
   button{font:inherit}
   .start{background:linear-gradient(140deg,#fff4d2,#eac985 50%,#b98b4b);border:1px solid #fff4d4;color:#302518;min-width:min(320px,76vw);min-height:59px;padding:14px 30px;border-radius:999px;font-size:clamp(14px,2.4vw,18px);font-weight:900;letter-spacing:.18em;box-shadow:0 11px 34px rgba(230,174,77,.22);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   .start:disabled{opacity:.56;cursor:default}
+  .start.during{opacity:.62;cursor:pointer}
+  .party-reveal{display:none;position:relative;z-index:1;min-height:calc(var(--window) + 64px);align-content:center}
+  .party-tiles{display:flex;align-items:center;justify-content:center;gap:clamp(15px,5vw,55px);margin:8px auto 16px}
+  .party-tile{display:grid;place-items:center;width:clamp(112px,23vw,190px);height:clamp(120px,24vw,196px);border:5px solid #ffe28c;border-radius:20px;background:linear-gradient(155deg,#fff4b0 2%,#f6b365 42%,#ec4d91 100%);box-shadow:0 0 32px #e94e90a0,inset 0 0 15px #fff4d7a0;color:#68224b;font:900 clamp(78px,12vw,142px)/1 "Hiragino Mincho ProN","Yu Mincho",serif;text-shadow:0 3px #ffed9b}
+  .stage.party-mode{border-color:#ffbf61;background:radial-gradient(circle at 20% 15%,#a23c8b88,transparent 55%),radial-gradient(circle at 80% 75%,#ec9f3480,transparent 60%),linear-gradient(140deg,#30114c,#7c255d 58%,#a33e3f);animation:party-glow .6s ease-in-out infinite alternate}
+  .stage.party-mode .reels{display:none}
+  .stage.party-mode .party-reveal{display:block}
+  .stage.party-mode .result-name{color:#fff5a8;text-shadow:0 0 23px #ffd54d,0 0 40px #fa548e}
+  .stage.party-mode .result-label,.stage.party-mode .result-en{color:#ffdf8f}
+  .stage.party-mode .party-tile:first-child{animation:party-bounce .42s ease-in-out infinite alternate}
+  .stage.party-mode .party-tile:last-child{animation:party-bounce .42s ease-in-out infinite alternate-reverse}
+  @keyframes party-bounce{from{transform:translateY(-6px) rotate(-5deg)}to{transform:translateY(6px) rotate(5deg)}}
+  @keyframes party-glow{from{box-shadow:0 0 25px #e84c7b8a}to{box-shadow:0 0 60px #ffca4aaa}}
+  @media(max-width:600px){.party-tile{width:clamp(108px,32vw,145px);height:clamp(120px,35vw,150px);font-size:clamp(74px,22vw,110px)}.party-reveal{min-height:calc(var(--window) + 55px)}.stage.party-mode .result-name{font-size:clamp(24px,6.5vw,36px);letter-spacing:0}}
   .sound{color:#deceb0;background:rgba(255,255,255,.065);border:1px solid rgba(235,207,159,.25);min-height:44px;border-radius:999px;padding:8px 18px;font-size:12px;cursor:pointer;touch-action:manipulation}
   .date{font-size:clamp(11px,1.7vw,14px);letter-spacing:.20em;margin-top:26px;color:#b7a98f}
   .date strong{color:#f0d69c}
@@ -70,7 +84,8 @@
       <div class="slot"><div class="reel" id="reel1"><div class="window"><div class="track"></div><div class="focus"></div></div></div><button class="stop" id="stop1" type="button" disabled>STOP</button></div>
       <div class="slot"><div class="reel" id="reel2"><div class="window"><div class="track"></div><div class="focus"></div></div></div><button class="stop" id="stop2" type="button" disabled>STOP</button></div>
     </div>
-    <div class="result" id="result" aria-hidden="true"><p class="result-label">HELLO, WORLD!</p><p class="result-name">伊藤 新之介</p><p class="result-en">SHINNOSUKE ITO</p></div>
+    <div class="party-reveal" id="partyReveal" aria-hidden="true"><div class="party-tiles"><span class="party-tile">祭</span><span class="party-tile">男</span></div></div>
+    <div class="result" id="result" aria-hidden="true"><p class="result-label" id="resultLabel">HELLO, WORLD!</p><p class="result-name" id="resultName">伊藤 新之介</p><p class="result-en" id="resultEn">SHINNOSUKE ITO</p></div>
   </section>
   <div class="action-row"><button class="start" id="start" type="button">▶ START</button><button class="sound" id="sound" type="button" aria-pressed="true">♪ 音あり</button></div>
   <p class="date">2026.11.16 <strong>15:26</strong> BORN</p>
@@ -87,8 +102,8 @@ const CANDIDATES=[...new Set(Array.from(
 const NEIGHBORS=[['信','真'],['乃','野'],['佑','輔']];
 const $=id=>document.getElementById(id);
 const nodes=NAME.map((_,i)=>({el:$('reel'+i),track:$('reel'+i).querySelector('.track'),window:$('reel'+i).querySelector('.window'),button:$('stop'+i),phase:0,lastBase:NaN,state:'idle',goal:0,from:0,stopStart:0,stopDuration:1150}));
-const start=$('start'),sound=$('sound'),result=$('result'),announcement=$('announcement');
-let active=false,lastTime=0,raf=0,soundEnabled=true,audioContext=null,confettiFrame=0,pieces=[];
+const start=$('start'),sound=$('sound'),result=$('result'),announcement=$('announcement'),stage=document.querySelector('.stage'),partyReveal=$('partyReveal'),resultLabel=$('resultLabel'),resultName=$('resultName'),resultEn=$('resultEn');
+let active=false,lastTime=0,raf=0,soundEnabled=true,audioContext=null,confettiFrame=0,pieces=[],secretTaps=0,finalTimer=0,partyBus=null,partyMusicTimer=0;
 const canvas=$('confetti'),ctx=canvas.getContext('2d');
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
 function getAudio(){if(!soundEnabled)return null;try{if(!audioContext)audioContext=new(window.AudioContext||window.webkitAudioContext)();if(audioContext.state==='suspended')audioContext.resume();return audioContext}catch(e){return null}}
@@ -96,9 +111,40 @@ function tone(f,d=.12,v=.06,type='sine',delay=0){const a=getAudio();if(!a)return
 function playStart(){tone(330,.11,.04,'triangle');tone(440,.15,.04,'triangle',.12);tone(554,.18,.05,'sine',.28)}
 function playStop(i){tone(720+(2-i)*95,.12,.07);tone(1100+(2-i)*110,.26,.035,'triangle',.06)}
 function fanfare(){[523.25,659.25,783.99,1046.5].forEach((hz,i)=>tone(hz,.34,.075,'triangle',i*.15));[523.25,659.25,783.99].forEach(hz=>tone(hz,.75,.028,'sine',.65))}
+// リズムとメロディーは Web Audio で合成するオリジナルの短いサンバ風ジングル。
+// 外部の音源・通信・著作権楽曲への依存はない。
+function stopPartyMusic(){
+ clearTimeout(partyMusicTimer);partyMusicTimer=0;
+ if(partyBus&&audioContext){const bus=partyBus;partyBus=null;try{bus.gain.cancelScheduledValues(audioContext.currentTime);bus.gain.setTargetAtTime(0,audioContext.currentTime,.025);setTimeout(()=>{try{bus.disconnect()}catch(e){}},180)}catch(e){}}
+}
+function startPartyMusic(){
+ const a=getAudio();if(!a)return;stopPartyMusic();
+ const bus=a.createGain();bus.gain.value=.46;bus.connect(a.destination);partyBus=bus;
+ const beat=60/126,t0=a.currentTime+.04,totalSteps=96,step=beat/4;
+ const noiseBuffer=a.createBuffer(1,Math.floor(a.sampleRate*.12),a.sampleRate);
+ const noise=noiseBuffer.getChannelData(0);for(let i=0;i<noise.length;i++)noise[i]=Math.random()*2-1;
+ function drum(t,kind){
+  const src=a.createBufferSource(),filter=a.createBiquadFilter(),gain=a.createGain();src.buffer=noiseBuffer;src.connect(filter);filter.connect(gain);gain.connect(bus);
+  filter.type=kind==='snare'?'bandpass':'highpass';filter.frequency.value=kind==='snare'?1600:4300;
+  const vol=kind==='snare'?.22:.105,dur=kind==='snare'?.095:.052;
+  gain.gain.setValueAtTime(vol,t);gain.gain.exponentialRampToValueAtTime(.0001,t+dur);src.start(t);src.stop(t+dur+.003);
+ }
+ function bass(t){const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(52,t+.14);g.gain.setValueAtTime(.26,t);g.gain.exponentialRampToValueAtTime(.0001,t+.20);o.connect(g);g.connect(bus);o.start(t);o.stop(t+.21)}
+ function melody(t,hz,dur=.16){const o=a.createOscillator(),filter=a.createBiquadFilter(),g=a.createGain();o.type='sawtooth';o.frequency.setValueAtTime(hz,t);filter.type='lowpass';filter.frequency.setValueAtTime(1900,t);filter.frequency.exponentialRampToValueAtTime(650,t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.15,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(filter);filter.connect(g);g.connect(bus);o.start(t);o.stop(t+dur+.03)}
+ for(let i=0;i<totalSteps;i++){
+  const t=t0+i*step,m=i%16;
+  if(m===0||m===7||m===10)bass(t);
+  if(m===4||m===12)drum(t,'snare');
+  if(i%2===0||m===3||m===11)drum(t+.008,'shaker');
+ }
+ // 8分音符のシンコペーションを含む、約11秒の陽気なジングル。
+ const phrase=[523.25,659.25,783.99,659.25,698.46,783.99,880,783.99,659.25,783.99,1046.5,880,783.99,659.25,698.46,1046.5];
+ for(let b=0;b<6;b++)for(let j=0;j<phrase.length;j++)if(j%4!==3){const offset=(b*16+j)*step;melody(t0+offset,phrase[(j+((b%3)*2))%phrase.length],j%4===0?.21:.14)}
+ partyMusicTimer=setTimeout(stopPartyMusic,Math.round(totalSteps*step*1000)+250);
+}
 function resetCanvas(){const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(innerWidth*dpr);canvas.height=Math.round(innerHeight*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)}
 window.addEventListener('resize',()=>{resetCanvas();nodes.forEach(n=>render(n,true))},{passive:true});resetCanvas();
-function confetti(){if(reduced.matches)return;if(confettiFrame)cancelAnimationFrame(confettiFrame);const w=innerWidth,h=innerHeight,colors=['#f3ca72','#fff6db','#ed9ca3','#d3b2f4','#91d1e2'];pieces=Array.from({length:130},(_,i)=>({x:w*(.2+Math.random()*.6),y:h*.35,vx:(Math.random()-.5)*12,vy:-3-Math.random()*9,g:.09+Math.random()*.13,rotation:Math.random()*7,spin:(Math.random()-.5)*.21,s:4+Math.random()*7,color:colors[i%colors.length]}));let frame=0;function draw(){ctx.clearRect(0,0,innerWidth,innerHeight);frame++;for(const p of pieces){p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.rotation+=p.spin;if(p.y>h+30)continue;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rotation);ctx.fillStyle=p.color;ctx.fillRect(-p.s/2,-p.s/3,p.s,p.s*.65);ctx.restore()}if(frame<310&&pieces.some(p=>p.y<h+30))confettiFrame=requestAnimationFrame(draw);else{ctx.clearRect(0,0,innerWidth,innerHeight);confettiFrame=0}}draw()}
+function confetti(party=false){if(reduced.matches)return;if(confettiFrame)cancelAnimationFrame(confettiFrame);const w=innerWidth,h=innerHeight,colors=party?['#ffda35','#ff619d','#40e6d2','#ffffff','#fe8239','#a58bff']:['#f3ca72','#fff6db','#ed9ca3','#d3b2f4','#91d1e2'];pieces=Array.from({length:party?240:130},(_,i)=>({x:w*(.2+Math.random()*.6),y:h*.35,vx:(Math.random()-.5)*12,vy:-3-Math.random()*9,g:.09+Math.random()*.13,rotation:Math.random()*7,spin:(Math.random()-.5)*.21,s:4+Math.random()*7,color:colors[i%colors.length]}));let frame=0;function draw(){ctx.clearRect(0,0,innerWidth,innerHeight);frame++;for(const p of pieces){p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.rotation+=p.spin;if(p.y>h+30)continue;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rotation);ctx.fillStyle=p.color;ctx.fillRect(-p.s/2,-p.s/3,p.s,p.s*.65);ctx.restore()}if(frame<310&&pieces.some(p=>p.y<h+30))confettiFrame=requestAnimationFrame(draw);else{ctx.clearRect(0,0,innerWidth,innerHeight);confettiFrame=0}}draw()}
 function glyph(i,k){const n=nodes[i];if(n.state==='idle')return '?';if(n.state==='stopping'||n.state==='locked'){if(k===n.goal)return NAME[i];if(k===n.goal-1)return NEIGHBORS[i][0];if(k===n.goal+1)return NEIGHBORS[i][1]}let v=Math.imul((k ^ Math.imul(i+17,0x9e3779b9)),0x85ebca6b);v^=v>>>13;v=Math.imul(v,0xc2b2ae35);v^=v>>>16;return CANDIDATES[(v>>>0)%CANDIDATES.length]}
 function render(n,force=false){const i=nodes.indexOf(n),h=n.window.getBoundingClientRect().height,base=Math.floor(n.phase),frac=n.phase-base;
  if(force||base!==n.lastBase){n.lastBase=base;const frag=document.createDocumentFragment();for(let k=base-2;k<=base+3;k++){const div=document.createElement('div');div.className='cell'+(n.state==='idle'?' placeholder':'');div.textContent=glyph(i,k);frag.appendChild(div)}n.track.replaceChildren(frag)}
@@ -106,17 +152,27 @@ function render(n,force=false){const i=nodes.indexOf(n),h=n.window.getBoundingCl
  n.track.style.transform=`translate3d(0,${h/2-row/2-(2+frac)*row}px,0)`;
 }
 function refreshButtons(){nodes.forEach(n=>{n.button.className='stop';if(n.state==='locked'){n.button.disabled=true;n.button.classList.add('done');n.button.textContent='✓';}else if(active&&n.state==='spinning'){n.button.disabled=false;n.button.classList.add('ready');n.button.textContent='STOP';}else{n.button.disabled=true;n.button.textContent='STOP'}})}
-function reset(){cancelAnimationFrame(raf);raf=0;lastTime=0;result.classList.remove('shown');result.setAttribute('aria-hidden','true');announcement.textContent='';nodes.forEach(n=>{n.phase=0;n.state='idle';n.goal=0;n.lastBase=NaN;n.el.classList.remove('locked');render(n,true)});active=false;refreshButtons();if(confettiFrame)cancelAnimationFrame(confettiFrame);confettiFrame=0;ctx.clearRect(0,0,innerWidth,innerHeight)}
+function reset(){clearTimeout(finalTimer);finalTimer=0;stopPartyMusic();cancelAnimationFrame(raf);raf=0;lastTime=0;secretTaps=0;stage.classList.remove('party-mode');partyReveal.setAttribute('aria-hidden','true');resultLabel.textContent='HELLO, WORLD!';resultName.textContent='伊藤 新之介';resultEn.textContent='SHINNOSUKE ITO';start.classList.remove('during');start.disabled=false;start.textContent='▶ START';result.classList.remove('shown');result.setAttribute('aria-hidden','true');announcement.textContent='';nodes.forEach(n=>{n.phase=0;n.state='idle';n.goal=0;n.lastBase=NaN;n.el.classList.remove('locked');render(n,true)});active=false;refreshButtons();if(confettiFrame)cancelAnimationFrame(confettiFrame);confettiFrame=0;ctx.clearRect(0,0,innerWidth,innerHeight)}
 function loop(now){if(!active)return;const dt=lastTime?Math.min((now-lastTime)/1000,.05):0;lastTime=now;
  for(let i=0;i<nodes.length;i++){const n=nodes[i];if(n.state==='spinning')n.phase+=dt*(10.5+i*1.3);else if(n.state==='stopping'){const x=Math.min(1,(now-n.stopStart)/n.stopDuration),ease=1-Math.pow(1-x,3);n.phase=n.from+(n.goal-n.from)*ease;if(x>=1){n.phase=n.goal;n.state='locked';n.el.classList.add('locked');playStop(i);announcement.textContent=NAME[i]+' が止まりました。';refreshButtons()}}render(n)}
  if(nodes.every(n=>n.state==='locked')){finish();return}
  raf=requestAnimationFrame(loop)}
-function startSpin(){if(active)return;reset();active=true;getAudio();playStart();nodes.forEach((n,i)=>{n.state='spinning';n.phase=.5+i*1.1;n.lastBase=NaN;render(n,true)});start.textContent='発表中';start.disabled=true;refreshButtons();raf=requestAnimationFrame(loop)}
+function startSpin(){if(active)return;reset();active=true;getAudio();playStart();nodes.forEach((n,i)=>{n.state='spinning';n.phase=.5+i*1.1;n.lastBase=NaN;render(n,true)});start.textContent='発表中';start.disabled=false;start.classList.add('during');refreshButtons();raf=requestAnimationFrame(loop)}
 function stop(i){const n=nodes[i];if(!active||n.state!=='spinning')return;n.state='stopping';n.from=n.phase;n.goal=Math.ceil(n.from)+5;n.stopStart=performance.now();n.stopDuration=reduced.matches?80:1160;n.lastBase=NaN;refreshButtons();render(n,true)}
-function finish(){active=false;cancelAnimationFrame(raf);raf=0;nodes.forEach(n=>render(n,true));refreshButtons();setTimeout(()=>{result.classList.add('shown');result.setAttribute('aria-hidden','false');announcement.textContent='お名前は、伊藤 新之介（いとう しんのすけ）です。';fanfare();confetti();start.textContent='↻ もう一度';start.disabled=false},reduced.matches?0:400)}
-start.addEventListener('click',startSpin);nodes.forEach((n,i)=>n.button.addEventListener('click',()=>stop(i)));
-sound.addEventListener('click',()=>{soundEnabled=!soundEnabled;sound.setAttribute('aria-pressed',String(soundEnabled));sound.textContent=soundEnabled?'♪ 音あり':'♪ 消音中';if(soundEnabled)tone(660,.14,.05)});
-document.addEventListener('visibilitychange',()=>{if(document.hidden){lastTime=0;if(audioContext&&audioContext.state==='running')audioContext.suspend()}else if(soundEnabled&&active&&audioContext)audioContext.resume()});reset();
+function finish(){active=false;cancelAnimationFrame(raf);raf=0;nodes.forEach(n=>render(n,true));refreshButtons();start.disabled=true;start.classList.remove('during');finalTimer=setTimeout(()=>{result.classList.add('shown');result.setAttribute('aria-hidden','false');announcement.textContent='お名前は、伊藤 新之介（いとう しんのすけ）です。';fanfare();confetti();start.textContent='↻ もう一度';start.disabled=false;finalTimer=0},reduced.matches?0:400)}
+function party(){
+ if(!active)return;active=false;cancelAnimationFrame(raf);raf=0;lastTime=0;
+ nodes.forEach(n=>{if(n.state==='spinning'||n.state==='stopping')n.state='idle'});refreshButtons();
+ stage.classList.add('party-mode');partyReveal.setAttribute('aria-hidden','false');
+ resultLabel.textContent='SURPRISE!';resultName.textContent='伊藤 ぱーてぃーちゃん';resultEn.textContent='PARTY TIME!';
+ result.classList.add('shown');result.setAttribute('aria-hidden','false');
+ announcement.textContent='祭、男！お名前は、伊藤 ぱーてぃーちゃん！';
+ start.classList.remove('during');start.textContent='↻ もう一度';start.disabled=false;
+ confetti(true);startPartyMusic();
+}
+start.addEventListener('click',()=>{if(active){secretTaps++;if(secretTaps===3)party();}else if(!finalTimer){startSpin()}});nodes.forEach((n,i)=>n.button.addEventListener('click',()=>stop(i)));
+sound.addEventListener('click',()=>{soundEnabled=!soundEnabled;sound.setAttribute('aria-pressed',String(soundEnabled));sound.textContent=soundEnabled?'♪ 音あり':'♪ 消音中';if(!soundEnabled)stopPartyMusic();else if(stage.classList.contains('party-mode'))startPartyMusic();else tone(660,.14,.05)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){lastTime=0;if(audioContext&&audioContext.state==='running')audioContext.suspend()}else if(soundEnabled&&(active||stage.classList.contains('party-mode'))&&audioContext)audioContext.resume()});reset();
 })();
 </script>
 </body>
